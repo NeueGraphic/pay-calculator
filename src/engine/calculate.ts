@@ -21,7 +21,7 @@ export function calculate(inputs: CalcInputs): CalcResult {
     }
   }
 
-  const incomeTax = calcIncomeTax(grossAnnual, isResident, claimTFT, fy)
+  const incomeTax = calcIncomeTax(grossAnnual, isResident, claimTFT)
   const medicareLevy = calcMedicareLevy(grossAnnual, isResident, fy)
   const hecsRepayment = hasHECS ? calcHECS(grossAnnual, fy) : 0
   const superSG = calcSuperSG(grossAnnual, fy)

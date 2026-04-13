@@ -1,5 +1,3 @@
-import type { FY } from './types'
-
 interface TaxBracket {
   min: number
   max: number
@@ -40,7 +38,7 @@ export function calcLITO(income: number): number {
   return 0
 }
 
-export function calcIncomeTax(income: number, isResident: boolean, claimTFT: boolean, _fy: FY): number {
+export function calcIncomeTax(income: number, isResident: boolean, claimTFT: boolean): number {
   if (income <= 0) return 0
 
   // If no TFN / not claiming TFT: withhold at 47% (resident) or 45% (non-resident)
