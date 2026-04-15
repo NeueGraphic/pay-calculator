@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { calculate } from '../engine/calculate'
-import type { CalcInputs, CalcResult, FY, PayPeriod, IncomeType } from '../engine/types'
+import type { CalcInputs, CalcResult, FY, PayPeriod, IncomeType, ResidencyStatus } from '../engine/types'
 
 interface CalculatorState {
   salary: number
@@ -9,8 +9,12 @@ interface CalculatorState {
   payPeriod: PayPeriod
   fy: FY
   hasHECS: boolean
-  isResident: boolean
+  residency: ResidencyStatus
   claimTFT: boolean
+  hasPrivateHealth: boolean
+  salaryIncludesSuper: boolean
+  salarySacrifice: number
+  additionalSuper: number
 }
 
 const DEFAULT_STATE: CalculatorState = {
@@ -20,8 +24,12 @@ const DEFAULT_STATE: CalculatorState = {
   payPeriod: 'monthly',
   fy: '2526',
   hasHECS: false,
-  isResident: true,
+  residency: 'resident',
   claimTFT: true,
+  hasPrivateHealth: false,
+  salaryIncludesSuper: false,
+  salarySacrifice: 0,
+  additionalSuper: 0,
 }
 
 export function useCalculator() {
@@ -39,10 +47,26 @@ export function useCalculator() {
     fy: state.fy,
     payPeriod: state.payPeriod,
     hasHECS: state.hasHECS,
-    isResident: state.isResident,
+    residency: state.residency,
     claimTFT: state.claimTFT,
     hoursPerWeek: state.hoursPerWeek,
-  }), [grossAnnual, state.fy, state.payPeriod, state.hasHECS, state.isResident, state.claimTFT, state.hoursPerWeek])
+    hasPrivateHealth: state.hasPrivateHealth,
+    salaryIncludesSuper: state.salaryIncludesSuper,
+    salarySacrifice: state.salarySacrifice,
+    additionalSuper: state.additionalSuper,
+  }), [
+    grossAnnual,
+    state.fy,
+    state.payPeriod,
+    state.hasHECS,
+    state.residency,
+    state.claimTFT,
+    state.hoursPerWeek,
+    state.hasPrivateHealth,
+    state.salaryIncludesSuper,
+    state.salarySacrifice,
+    state.additionalSuper,
+  ])
 
   const result: CalcResult = useMemo(() => calculate(inputs), [inputs])
 

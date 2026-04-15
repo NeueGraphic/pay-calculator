@@ -18,7 +18,7 @@ interface RowProps {
   amount: number
   annualAmount: number
   grossAnnual: number
-  color: 'red' | 'green' | 'blue' | 'orange'
+  color: 'red' | 'green' | 'blue' | 'orange' | 'purple'
 }
 
 const BAR_COLORS = {
@@ -26,6 +26,7 @@ const BAR_COLORS = {
   green: 'bg-apple-green',
   blue: 'bg-apple-blue',
   orange: 'bg-[#FF9500]',
+  purple: 'bg-[#AF52DE]',
 }
 
 function BreakdownRow({ label, sublabel, amount, annualAmount, grossAnnual, color }: RowProps) {
@@ -60,6 +61,24 @@ function BreakdownRow({ label, sublabel, amount, annualAmount, grossAnnual, colo
   )
 }
 
+function AnimatedRow({ show, children }: { show: boolean; children: React.ReactNode }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+          className="overflow-hidden"
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 export function BreakdownCard({ result, payPeriod, hasHECS, fy }: BreakdownCardProps) {
   const divisor = PAY_PERIOD_DIVISOR[payPeriod]
   const sgRate = getSGRate(fy)
@@ -89,46 +108,65 @@ export function BreakdownCard({ result, payPeriod, hasHECS, fy }: BreakdownCardP
             grossAnnual={result.grossAnnual}
             color="orange"
           />
-          <AnimatePresence>
-            {hasHECS && result.hecsRepayment > 0 && (
-              <motion.div
-                key="hecs-row"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-                className="overflow-hidden"
-              >
-                <BreakdownRow
-                  label="HECS/HELP"
-                  sublabel="repayment"
-                  amount={result.hecsRepayment / divisor}
-                  annualAmount={result.hecsRepayment}
-                  grossAnnual={result.grossAnnual}
-                  color="blue"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <AnimatedRow show={result.medicareLevySurcharge > 0}>
+            <BreakdownRow
+              label="Medicare Surcharge"
+              sublabel="no private hospital"
+              amount={result.medicareLevySurcharge / divisor}
+              annualAmount={result.medicareLevySurcharge}
+              grossAnnual={result.grossAnnual}
+              color="orange"
+            />
+          </AnimatedRow>
+          <AnimatedRow show={hasHECS && result.hecsRepayment > 0}>
+            <BreakdownRow
+              label="HECS/HELP"
+              sublabel="study loan"
+              amount={result.hecsRepayment / divisor}
+              annualAmount={result.hecsRepayment}
+              grossAnnual={result.grossAnnual}
+              color="blue"
+            />
+          </AnimatedRow>
         </div>
       </div>
 
-      {/* Divider + Employer */}
+      {/* Divider + Super section */}
       <div className="mx-6 border-t border-black/[0.06] mt-1" />
 
       <div className="px-6 pb-5">
         <div className="text-[11px] font-semibold tracking-[0.06em] uppercase text-apple-secondary mt-4 mb-1">
-          Employer Adds
+          Superannuation
         </div>
         <div className="divide-y divide-black/[0.05]">
           <BreakdownRow
-            label="Super (SG)"
-            sublabel={`${sgRate}% of gross`}
+            label="Employer SG"
+            sublabel={`${sgRate}%`}
             amount={result.superSG / divisor}
             annualAmount={result.superSG}
             grossAnnual={result.grossAnnual}
             color="green"
           />
+          <AnimatedRow show={result.salarySacrifice > 0}>
+            <BreakdownRow
+              label="Salary Sacrifice"
+              sublabel="pre-tax"
+              amount={result.salarySacrifice / divisor}
+              annualAmount={result.salarySacrifice}
+              grossAnnual={result.grossAnnual}
+              color="purple"
+            />
+          </AnimatedRow>
+          <AnimatedRow show={result.additionalSuper > 0}>
+            <BreakdownRow
+              label="Voluntary Super"
+              sublabel="post-tax"
+              amount={result.additionalSuper / divisor}
+              annualAmount={result.additionalSuper}
+              grossAnnual={result.grossAnnual}
+              color="purple"
+            />
+          </AnimatedRow>
         </div>
       </div>
 
@@ -138,7 +176,7 @@ export function BreakdownCard({ result, payPeriod, hasHECS, fy }: BreakdownCardP
           <div>
             <div className="text-[11px] text-apple-secondary">Tax + Levies</div>
             <AnimatedNumber
-              value={(result.incomeTax + result.medicareLevy) / divisor}
+              value={(result.incomeTax + result.medicareLevy + result.medicareLevySurcharge) / divisor}
               prefix="$"
               className="text-[14px] font-semibold text-apple-red tabular-nums"
             />
@@ -152,9 +190,9 @@ export function BreakdownCard({ result, payPeriod, hasHECS, fy }: BreakdownCardP
             />
           </div>
           <div>
-            <div className="text-[11px] text-apple-secondary">Super</div>
+            <div className="text-[11px] text-apple-secondary">Total Super</div>
             <AnimatedNumber
-              value={result.superSG / divisor}
+              value={result.totalSuper / divisor}
               prefix="$"
               className="text-[14px] font-semibold text-apple-green tabular-nums"
             />
