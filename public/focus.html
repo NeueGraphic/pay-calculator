@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Focus">
+<title>Focus — Pomodoro for Designers</title>
+<style>
+/* ===================================================
+   TOKENS
+=================================================== */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+
+  --bg:        #F2F2F7;
+  --surface:   #FFFFFF;
+  --surface2:  #F2F2F7;
+  --surface3:  rgba(255,255,255,0.82);
+  --label:     #000000;
+  --label2:    rgba(0,0,0,0.75);
+  --label3:    rgba(60,60,67,0.55);
+  --label4:    rgba(60,60,67,0.18);
+  --label5:    rgba(60,60,67,0.08);
+  --sep:       rgba(60,60,67,0.12);
+
+  --blue:      #007AFF;
+  --blue-bg:   rgba(0,122,255,0.10);
+  --green:     #34C759;
+  --green-bg:  rgba(52,199,89,0.12);
+  --red:       #FF3B30;
+  --red-bg:    rgba(255,59,48,0.10);
+  --orange:    #FF9500;
+  --orange-bg: rgba(255,149,0,0.12);
+  --purple:    #AF52DE;
+  --purple-bg: rgba(175,82,222,0.12);
+
+  --accent:    #FF6B6B;
+  --accent2:   #FF8E53;
+  --accent-bg: rgba(255,107,107,0.10);
+
+  --r-sm:  10px;
+  --r-md:  14px;
+  --r-lg:  18px;
+  --r-xl:  24px;
+
+  --shadow-xs: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 2px 10px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-xl: 0 24px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.10);
+
+  --spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:  cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:       #000000;
+    --surface:  #1C1C1E;
+    --surface2: #2C2C2E;
+    --surface3: rgba(28,28,30,0.88);
+    --label:    #FFFFFF;
+    --label2:   rgba(255,255,255,0.80);
+    --label3:   rgba(235,235,245,0.50);
+    --label4:   rgba(235,235,245,0.12);
+    --label5:   rgba(235,235,245,0.06);
+    --sep:      rgba(84,84,88,0.55);
+
+    --blue-bg:   rgba(0,122,255,0.18);
+    --green-bg:  rgba(52,199,89,0.18);
+    --red-bg:    rgba(255,59,48,0.18);
+    --orange-bg: rgba(255,149,0,0.18);
+    --purple-bg: rgba(175,82,222,0.18);
+    --accent-bg: rgba(255,107,107,0.15);
+
+    --shadow-xs: 0 1px 3px rgba(0,0,0,0.30);
+    --shadow-sm: 0 2px 10px rgba(0,0,0,0.40);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.50);
+    --shadow-xl: 0 24px 60px rgba(0,0,0,0.65);
+  }
+}
+
+/* ===================================================
+   RESET
+=================================================== */
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+html { height: 100%; overscroll-behavior: none; }
+body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--label);
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ===================================================
+   APP SHELL
+=================================================== */
+#app {
+  height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===================================================
+   NAVBAR
+=================================================== */
+.navbar {
+  position: relative;
+  z-index: 50;
+  padding-top: env(safe-area-inset-top, 44px);
+  background: var(--surface3);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-bottom: 0.5px solid var(--sep);
+  flex-shrink: 0;
+}
+
+.navbar-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 10px 18px 14px;
+  gap: 12px;
+}
+
+.navbar-title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.35px;
+  line-height: 1;
+  color: var(--label);
+}
+
+.navbar-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--label3);
+  margin-top: 2px;
+  letter-spacing: -0.1px;
+}
+
+.navbar-actions { display: flex; gap: 8px; align-items: flex-end; padding-bottom: 2px; }
+
+.btn-nav {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--label4);
+  color: var(--label2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.18s var(--spring), background 0.14s;
+}
+.btn-nav:active { transform: scale(0.86); }
+.btn-nav svg { width: 18px; height: 18px; stroke-width: 2; }
+.btn-nav.accent { background: var(--accent-bg); color: var(--accent); }
+
+/* ===================================================
+   SCROLL CONTENT
+=================================================== */
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+}
+
+/* ===================================================
+   MODE SELECTOR
+=================================================== */
+.mode-strip {
+  display: flex;
+  gap: 8px;
+  padding: 16px 18px 0;
+}
+
+.mode-pill {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 12px;
+  border: none;
+  background: var(--surface);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label3);
+  cursor: pointer;
+  letter-spacing: -0.1px;
+  transition: background 0.2s var(--spring), color 0.2s, transform 0.18s var(--spring), box-shadow 0.2s;
+  box-shadow: var(--shadow-xs);
+  text-align: center;
+  white-space: nowrap;
+}
+.mode-pill:active { transform: scale(0.95); }
+
+.mode-pill.active-work   { background: var(--accent);  color: #fff; box-shadow: 0 4px 14px rgba(255,107,107,0.40); }
+.mode-pill.active-short  { background: var(--green);   color: #fff; box-shadow: 0 4px 14px rgba(52,199,89,0.40); }
+.mode-pill.active-long   { background: var(--blue);    color: #fff; box-shadow: 0 4px 14px rgba(0,122,255,0.40); }
+
+/* ===================================================
+   TIMER CARD
+=================================================== */
+.timer-card {
+  margin: 16px 18px 0;
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  padding: 28px 24px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.session-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--label3);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.ring-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin-bottom: 24px;
+}
+
+.ring-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--label5);
+  stroke-width: 10;
+}
+
+.ring-prog {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.85s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              stroke 0.4s ease;
+}
+
+.ring-ticks { position: absolute; inset: 0; pointer-events: none; }
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.timer-display {
+  font-size: 58px;
+  font-weight: 300;
+  letter-spacing: -3px;
+  color: var(--label);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s;
+}
+
+.timer-display.pulse {
+  animation: timerPulse 0.4s ease-out;
+}
+
+@keyframes timerPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.timer-phase {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label3);
+  letter-spacing: 0.3px;
+}
+
+.timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.btn-control-sm {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface2);
+  color: var(--label2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.18s var(--spring), background 0.14s;
+  box-shadow: var(--shadow-xs);
+}
+.btn-control-sm:active { transform: scale(0.86); }
+.btn-control-sm svg { width: 20px; height: 20px; stroke-width: 2; }
+
+.btn-play {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.22s var(--spring), box-shadow 0.22s;
+  position: relative;
+}
+.btn-play:active { transform: scale(0.88); }
+.btn-play svg { width: 30px; height: 30px; }
+
+.btn-play.mode-work {
+  background: var(--accent);
+  box-shadow: 0 8px 28px rgba(255,107,107,0.45), 0 3px 10px rgba(0,0,0,0.12);
+  color: #fff;
+}
+.btn-play.mode-short {
+  background: var(--green);
+  box-shadow: 0 8px 28px rgba(52,199,89,0.45), 0 3px 10px rgba(0,0,0,0.12);
+  color: #fff;
+}
+.btn-play.mode-long {
+  background: var(--blue);
+  box-shadow: 0 8px 28px rgba(0,122,255,0.45), 0 3px 10px rgba(0,0,0,0.12);
+  color: #fff;
+}
+
+.play-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: playRipple 0.6s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes playRipple {
+  from { transform: scale(1); opacity: 0.5; }
+  to   { transform: scale(1.6); opacity: 0; }
+}
+
+/* ===================================================
+   SESSION DOTS
+=================================================== */
+.session-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 18px;
+  align-items: center;
+}
+
+.session-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--label4);
+  transition: background 0.3s var(--spring), transform 0.3s var(--spring);
+}
+.session-dot.done { background: var(--accent); transform: scale(1.1); }
+.session-dot.current {
+  background: var(--accent);
+  opacity: 0.5;
+  width: 20px;
+  border-radius: 4px;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%,100% { opacity: 0.5; }
+  50%     { opacity: 0.9; }
+}
+
+/* ===================================================
+   TASK CARD
+=================================================== */
+.task-card {
+  margin: 12px 18px 0;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+.task-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 0.5px solid var(--sep);
+}
+
+.task-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--label3);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.btn-task-add {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent-bg);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.16s var(--spring);
+}
+.btn-task-add:active { transform: scale(0.86); }
+.btn-task-add svg { width: 14px; height: 14px; stroke-width: 2.5; }
+
+.task-list { padding: 4px 0; }
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+  animation: taskIn 0.3s var(--spring) both;
+}
+@keyframes taskIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: none; }
+}
+.task-row:active { background: var(--label5); }
+
+.task-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--sep);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s var(--spring), border-color 0.2s;
+}
+.task-check.done { background: var(--green); border-color: var(--green); }
+.task-check svg  { width: 11px; height: 11px; stroke-width: 3; color: #fff; opacity: 0; transition: opacity 0.2s; }
+.task-check.done svg { opacity: 1; }
+
+.task-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--label);
+  letter-spacing: -0.15px;
+  transition: color 0.2s, opacity 0.2s;
+}
+.task-row.done-row .task-name {
+  color: var(--label3);
+  text-decoration: line-through;
+  text-decoration-color: var(--label4);
+}
+
+.task-pomos {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.task-pomo-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.35;
+}
+.task-pomo-dot.filled { opacity: 1; }
+
+.task-delete {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--label4);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.14s, background 0.14s;
+  opacity: 0;
+}
+.task-row:hover .task-delete { opacity: 1; }
+.task-delete:hover { background: var(--red-bg); color: var(--red); }
+.task-delete svg { width: 13px; height: 13px; stroke-width: 2; }
+
+.task-empty {
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--label3);
+  letter-spacing: -0.1px;
+}
+
+/* ===================================================
+   STATS CHIPS
+=================================================== */
+.chips-row {
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chips-row::-webkit-scrollbar { display: none; }
+
+.chip {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+.chip-emoji { font-size: 18px; line-height: 1; }
+.chip-val   { font-size: 22px; font-weight: 700; color: var(--label); letter-spacing: -0.5px; line-height: 1; }
+.chip-label { font-size: 11px; font-weight: 500; color: var(--label3); white-space: nowrap; }
+
+/* ===================================================
+   DESIGNER TIP
+=================================================== */
+.tip-card {
+  margin: 12px 18px 0;
+  background: var(--accent-bg);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 0.5px solid rgba(255,107,107,0.20);
+}
+
+.tip-icon { font-size: 22px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+
+.tip-text { flex: 1; }
+
+.tip-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.1px;
+  margin-bottom: 2px;
+}
+
+.tip-body {
+  font-size: 13px;
+  color: var(--label2);
+  line-height: 1.5;
+  letter-spacing: -0.1px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ===================================================
+   SETTINGS SHEET
+=================================================== */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  transition: background 0.3s;
+}
+.sheet-overlay.open {
+  background: rgba(0,0,0,0.50);
+  pointer-events: all;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 430px;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  transform: translateY(110%);
+  transition: transform 0.4s cubic-bezier(0.32, 1.28, 0.68, 1);
+  box-shadow: var(--shadow-xl);
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-overlay.open .sheet { transform: translateY(0); }
+
+.sheet-handle {
+  width: 38px; height: 4px;
+  border-radius: 2px;
+  background: var(--label4);
+  margin: 10px auto 16px;
+  flex-shrink: 0;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 16px;
+  border-bottom: 0.5px solid var(--sep);
+  flex-shrink: 0;
+}
+
+.sheet-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--label);
+  letter-spacing: -0.2px;
+}
+
+.btn-sheet-close {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--label4);
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--label2);
+  transition: background 0.14s, transform 0.14s;
+}
+.btn-sheet-close:active { transform: scale(0.88); }
+.btn-sheet-close svg { width: 16px; height: 16px; stroke-width: 2.5; }
+
+.sheet-body {
+  padding: 20px 20px 8px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+.settings-section { margin-bottom: 24px; }
+
+.field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--label3);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.settings-group {
+  background: var(--surface2);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  border-bottom: 0.5px solid var(--sep);
+  gap: 12px;
+}
+.settings-row:last-child { border-bottom: none; }
+
+.settings-row-label { font-size: 15px; color: var(--label); letter-spacing: -0.2px; }
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 0.5px solid var(--sep);
+}
+
+.stepper-btn {
+  width: 36px; height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--blue);
+  font-size: 20px;
+  font-family: var(--font);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s;
+}
+.stepper-btn:active { background: var(--label4); }
+
+.stepper-val {
+  min-width: 42px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--label);
+  border-left: 0.5px solid var(--sep);
+  border-right: 0.5px solid var(--sep);
+  padding: 0 6px;
+  line-height: 36px;
+  letter-spacing: -0.2px;
+}
+
+/* Toggle switch */
+.toggle-wrap { position: relative; width: 51px; height: 31px; }
+.toggle-wrap input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--label4);
+  border-radius: 17px;
+  cursor: pointer;
+  transition: background 0.22s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 27px; height: 27px;
+  left: 2px; top: 2px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.22s var(--spring);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+}
+.toggle-wrap input:checked + .toggle-slider { background: var(--green); }
+.toggle-wrap input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+.sheet-footer {
+  padding: 14px 20px 6px;
+  border-top: 0.5px solid var(--sep);
+  flex-shrink: 0;
+}
+
+.btn-save {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  letter-spacing: -0.2px;
+  transition: opacity 0.16s, transform 0.16s;
+  box-shadow: 0 6px 20px rgba(255,107,107,0.35);
+}
+.btn-save:active { opacity: 0.85; transform: scale(0.97); }
+
+/* ===================================================
+   ADD TASK SHEET
+=================================================== */
+.field-input {
+  width: 100%;
+  background: var(--surface2);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 13px 14px;
+  font-size: 16px;
+  font-family: var(--font);
+  color: var(--label);
+  outline: none;
+  transition: box-shadow 0.18s;
+  -webkit-user-select: text;
+  user-select: text;
+  letter-spacing: -0.2px;
+  margin-bottom: 16px;
+}
+.field-input::placeholder { color: var(--label3); }
+.field-input:focus { box-shadow: 0 0 0 3px rgba(255,107,107,0.25); }
+
+.btn-cancel {
+  flex: 1;
+  background: var(--surface2);
+  color: var(--label);
+  border: none;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: opacity 0.14s;
+  letter-spacing: -0.2px;
+}
+.btn-cancel:active { opacity: 0.6; }
+
+.sheet-footer-row {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px 6px;
+  border-top: 0.5px solid var(--sep);
+  flex-shrink: 0;
+}
+
+/* ===================================================
+   COMPLETION OVERLAY
+=================================================== */
+.complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  padding: 24px;
+}
+.complete-overlay.show { opacity: 1; pointer-events: all; }
+
+.complete-card {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  padding: 32px 24px 24px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  transform: scale(0.85) translateY(20px);
+  transition: transform 0.4s var(--spring);
+}
+.complete-overlay.show .complete-card { transform: scale(1) translateY(0); }
+
+.complete-emoji {
+  font-size: 52px;
+  margin-bottom: 16px;
+  display: block;
+  animation: emojiFloat 2s ease-in-out infinite;
+}
+@keyframes emojiFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+
+.complete-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--label);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.complete-sub {
+  font-size: 15px;
+  color: var(--label3);
+  line-height: 1.5;
+  margin-bottom: 24px;
+  letter-spacing: -0.1px;
+}
+
+.complete-btns { display: flex; flex-direction: column; gap: 10px; }
+
+.btn-complete-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  letter-spacing: -0.2px;
+  transition: opacity 0.14s, transform 0.14s;
+  box-shadow: 0 6px 20px rgba(255,107,107,0.35);
+}
+.btn-complete-primary:active { opacity: 0.85; transform: scale(0.97); }
+
+.btn-complete-sec {
+  background: var(--surface2);
+  color: var(--label);
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  letter-spacing: -0.2px;
+  transition: opacity 0.14s;
+}
+.btn-complete-sec:active { opacity: 0.6; }
+
+/* ===================================================
+   TOAST
+=================================================== */
+.toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  left: 50%;
+  transform: translateX(-50%) translateY(24px);
+  background: rgba(28,28,30,0.94);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font);
+  z-index: 400;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.36s var(--spring), opacity 0.28s;
+  letter-spacing: -0.1px;
+  box-shadow: var(--shadow-md);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div>
+        <div class="navbar-title">Focus</div>
+        <div class="navbar-subtitle" id="sessionSubtitle">Pomodoro Timer</div>
+      </div>
+      <div class="navbar-actions">
+        <button class="btn-nav accent" id="btnSettings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SCROLL BODY -->
+  <div class="scroll-content">
+
+    <!-- Mode selector -->
+    <div class="mode-strip">
+      <button class="mode-pill active-work" data-mode="work"  onclick="setMode('work')">Work</button>
+      <button class="mode-pill"             data-mode="short" onclick="setMode('short')">Short Break</button>
+      <button class="mode-pill"             data-mode="long"  onclick="setMode('long')">Long Break</button>
+    </div>
+
+    <!-- Timer card -->
+    <div class="timer-card">
+      <div class="session-label" id="sessionLabel">FOCUS SESSION</div>
+
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 220 220">
+          <circle class="ring-track" cx="110" cy="110" r="96"/>
+          <circle class="ring-prog" id="ringProg" cx="110" cy="110" r="96"
+            stroke-dasharray="603.2" stroke-dashoffset="0"
+            stroke="#FF6B6B"/>
+        </svg>
+        <div class="ring-center">
+          <div class="timer-display" id="timerDisplay">25:00</div>
+          <div class="timer-phase"   id="timerPhase">Ready</div>
+        </div>
+      </div>
+
+      <div class="timer-controls">
+        <button class="btn-control-sm" id="btnReset" aria-label="Reset">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/>
+            <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+          </svg>
+        </button>
+
+        <button class="btn-play mode-work" id="btnPlay" aria-label="Start">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+        </button>
+
+        <button class="btn-control-sm" id="btnSkip" aria-label="Skip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 4 15 12 5 20" fill="currentColor" stroke="none"/>
+            <line x1="19" y1="5" x2="19" y2="19"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="session-dots" id="sessionDots"></div>
+    </div>
+
+    <!-- Stats chips -->
+    <div class="chips-row" id="chipsRow"></div>
+
+    <!-- Task list -->
+    <div class="task-card">
+      <div class="task-card-header">
+        <span class="task-card-title">Project Tasks</span>
+        <button class="btn-task-add" id="btnAddTask" aria-label="Add task">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="task-list" id="taskList"></div>
+    </div>
+
+    <!-- Designer tip -->
+    <div class="tip-card" id="tipCard">
+      <div class="tip-icon" id="tipIcon">&#127912;</div>
+      <div class="tip-text">
+        <div class="tip-title" id="tipTitle">Designer tip</div>
+        <div class="tip-body"  id="tipBody">Use this work session to focus on one design decision. Commit to it before the timer runs out.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet-overlay" id="settingsOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">Timer Settings</span>
+      <button class="btn-sheet-close" id="btnSettingsClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="settings-section">
+        <div class="field-label">Duration</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <span class="settings-row-label">Work</span>
+            <div class="stepper" id="stepperWork"></div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-label">Short Break</span>
+            <div class="stepper" id="stepperShort"></div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-label">Long Break</span>
+            <div class="stepper" id="stepperLong"></div>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-label">Sessions before long break</span>
+            <div class="stepper" id="stepperCycle"></div>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="field-label">Behaviour</div>
+        <div class="settings-group">
+          <div class="settings-row">
+            <span class="settings-row-label">Auto-start breaks</span>
+            <label class="toggle-wrap">
+              <input type="checkbox" id="toggleAutoBreak"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-label">Auto-start sessions</span>
+            <label class="toggle-wrap">
+              <input type="checkbox" id="toggleAutoWork"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row-label">Sound alerts</span>
+            <label class="toggle-wrap">
+              <input type="checkbox" id="toggleSound" checked/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-save" id="btnSaveSettings">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK SHEET -->
+<div class="sheet-overlay" id="taskOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">Add Task</span>
+      <button class="btn-sheet-close" id="btnTaskClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="field-label">Task name</div>
+      <input class="field-input" id="taskInput" type="text"
+             placeholder="e.g. Revise logo concepts, Review client brief..."
+             maxlength="60" autocomplete="off"/>
+      <div class="field-label">Estimated pomodoros</div>
+      <div class="stepper" id="stepperTaskPomos" style="width:fit-content"></div>
+    </div>
+    <div class="sheet-footer-row">
+      <button class="btn-cancel" id="btnTaskCancel">Cancel</button>
+      <button class="btn-save" id="btnTaskSave" style="flex:1">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETION OVERLAY -->
+<div class="complete-overlay" id="completeOverlay">
+  <div class="complete-card">
+    <span class="complete-emoji" id="completeEmoji">&#127881;</span>
+    <div class="complete-title" id="completeTitle">Session complete!</div>
+    <div class="complete-sub"   id="completeSub">Great work. Take a short break before your next session.</div>
+    <div class="complete-btns">
+      <button class="btn-complete-primary" id="btnCompleteNext">Start Break &rarr;</button>
+      <button class="btn-complete-sec"     id="btnCompleteDismiss">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================================================
+   STORAGE + STATE
+================================================== */
+const STORAGE = 'focus_v2';
+
+const DESIGNER_TIPS = [
+  { icon:'\u{1F3A8}', title:'Constraint breeds creativity', body:'Limit yourself to 2 typefaces and 3 colours this session. Restrictions unlock better solutions.' },
+  { icon:'\u{1F441}️', title:'Design for the squint test', body:'Squint at your layout. If the hierarchy disappears, your visual weight needs work.' },
+  { icon:'\u{1F4D0}', title:'Spacing is a design element', body:'Whitespace isn\'t empty — it\'s breathing room. Double your margins and see what changes.' },
+  { icon:'\u{1F534}', title:'One focal point', body:'Every composition needs a single entry point. Find it and make everything else support it.' },
+  { icon:'\u{1F58B}️', title:'Type first, then style', body:'Set type at the right size for reading, then adjust tracking and weight. Not the other way.' },
+  { icon:'\u{1FA9E}', title:'Mirror test', body:'Flip your design horizontally. Imbalances you\'ve stopped seeing will become obvious.' },
+  { icon:'\u{1F4F1}', title:'Design at the smallest size first', body:'If it works at mobile scale, it\'ll scale up gracefully. The reverse rarely holds.' },
+  { icon:'\u{1F9F9}', title:'Remove, don\'t add', body:'The best edit in this session might be deletion. What can you remove without losing meaning?' },
+  { icon:'\u{1F3AF}', title:'Alignment creates trust', body:'Pick one alignment axis and commit. Inconsistent alignment signals amateur work faster than any other mistake.' },
+  { icon:'\u{1F321}️', title:'Warm vs cool contrast', body:'Temperature contrast works as well as value contrast. A warm accent on a cool palette creates instant focus.' },
+];
+
+function defSettings() {
+  return {
+    workMins:   25,
+    shortMins:  5,
+    longMins:   15,
+    cycleLen:   4,
+    autoBreak:  false,
+    autoWork:   false,
+    sound:      true,
+  };
+}
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE)) || {}; }
+  catch { return {}; }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE, JSON.stringify({
+    settings, tasks, stats
+  }));
+}
+
+const saved    = loadState();
+let settings   = Object.assign(defSettings(), saved.settings || {});
+let tasks      = saved.tasks  || [];
+let stats      = saved.stats  || { todayPomos: 0, totalPomos: 0, focusMins: 0, lastDate: '' };
+
+const today = new Date().toDateString();
+if (stats.lastDate !== today) {
+  stats.todayPomos = 0;
+  stats.lastDate   = today;
+}
+
+/* ==================================================
+   TIMER STATE
+================================================== */
+let mode        = 'work';
+let running     = false;
+let remaining   = settings.workMins * 60;
+let total       = settings.workMins * 60;
+let interval    = null;
+let sessionInCycle = 0;
+let taskPomos   = 1;
+
+/* ==================================================
+   UTILS
+================================================== */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function fmtTime(s) {
+  var m = Math.floor(s / 60).toString().padStart(2,'0');
+  var sec = (s % 60).toString().padStart(2,'0');
+  return m + ':' + sec;
+}
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+/* ==================================================
+   RENDER
+================================================== */
+function renderAll() {
+  renderMode();
+  renderTimer();
+  renderSessionDots();
+  renderChips();
+  renderTasks();
+  renderTip();
+  renderNavSubtitle();
+}
+
+function renderMode() {
+  document.querySelectorAll('.mode-pill').forEach(function(p) {
+    p.className = 'mode-pill';
+    if (p.dataset.mode === mode) p.classList.add('active-' + mode);
+  });
+  var play = document.getElementById('btnPlay');
+  play.className = 'btn-play mode-' + mode;
+}
+
+function renderNavSubtitle() {
+  var labels = { work:'Pomodoro Timer', short:'Short Break', long:'Long Break' };
+  document.getElementById('sessionSubtitle').textContent = labels[mode];
+}
+
+function renderTimer() {
+  document.getElementById('timerDisplay').textContent = fmtTime(remaining);
+  var pct = total > 0 ? remaining / total : 1;
+  var circ = 603.2;
+  var offset = circ * (1 - pct);
+  var prog = document.getElementById('ringProg');
+  prog.style.strokeDashoffset = offset;
+
+  var colours = { work:'#FF6B6B', short:'#34C759', long:'#007AFF' };
+  prog.style.stroke = colours[mode];
+
+  var labels = { work:'FOCUS SESSION', short:'SHORT BREAK', long:'LONG BREAK' };
+  document.getElementById('sessionLabel').textContent = labels[mode];
+
+  var phases = {
+    work:  running ? 'In the zone \u{1F525}' : remaining === total ? 'Ready' : 'Paused',
+    short: running ? 'Resting…' : 'Take a breather',
+    long:  running ? 'Long rest…' : 'Good time for a walk',
+  };
+  document.getElementById('timerPhase').textContent = phases[mode];
+
+  var playIcon = document.getElementById('playIcon');
+  if (running) {
+    playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    playIcon.setAttribute('fill', 'currentColor');
+  } else {
+    playIcon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+    playIcon.setAttribute('fill', 'currentColor');
+  }
+}
+
+function renderSessionDots() {
+  var dots = document.getElementById('sessionDots');
+  var len  = settings.cycleLen;
+  var html = '';
+  for (var i = 0; i < len; i++) {
+    var cls = i < sessionInCycle ? 'session-dot done'
+            : i === sessionInCycle && mode === 'work' ? 'session-dot current'
+            : 'session-dot';
+    html += '<div class="' + cls + '"></div>';
+  }
+  dots.innerHTML = html;
+}
+
+function renderChips() {
+  var el = document.getElementById('chipsRow');
+  var focusHrs = (stats.focusMins / 60).toFixed(1);
+  el.innerHTML =
+    '<div class="chip"><div class="chip-emoji">\u{1F345}</div><div class="chip-val">' + stats.todayPomos + '</div><div class="chip-label">Today</div></div>' +
+    '<div class="chip"><div class="chip-emoji">\u{1F525}</div><div class="chip-val">' + stats.totalPomos + '</div><div class="chip-label">All-time</div></div>' +
+    '<div class="chip"><div class="chip-emoji">⏱️</div><div class="chip-val">' + focusHrs + 'h</div><div class="chip-label">Focus time</div></div>' +
+    '<div class="chip"><div class="chip-emoji">✅</div><div class="chip-val">' + tasks.filter(function(t){return t.done;}).length + '</div><div class="chip-label">Done today</div></div>';
+}
+
+var checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+function renderTasks() {
+  var list = document.getElementById('taskList');
+  if (!tasks.length) {
+    list.innerHTML = '<div class="task-empty">No tasks yet — add something to focus on</div>';
+    return;
+  }
+  var html = '';
+  tasks.forEach(function(t, i) {
+    var dots = '';
+    for (var j = 0; j < t.pomos; j++) {
+      dots += '<div class="task-pomo-dot ' + (j < t.pomosSpent ? 'filled' : '') + '"></div>';
+    }
+    html += '<div class="task-row ' + (t.done ? 'done-row' : '') + '" data-idx="' + i + '">' +
+      '<div class="task-check ' + (t.done ? 'done' : '') + '" onclick="toggleTask(' + i + ')">' + checkSvg + '</div>' +
+      '<div class="task-name">' + escHtml(t.name) + '</div>' +
+      '<div class="task-pomos">' + dots + '</div>' +
+      '<button class="task-delete" onclick="deleteTask(' + i + ')" aria-label="Delete">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>' +
+        '</svg>' +
+      '</button>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function renderTip() {
+  var tip = DESIGNER_TIPS[Math.floor(Math.random() * DESIGNER_TIPS.length)];
+  document.getElementById('tipIcon').textContent  = tip.icon;
+  document.getElementById('tipTitle').textContent = tip.title;
+  document.getElementById('tipBody').textContent  = tip.body;
+}
+
+/* ==================================================
+   TIMER LOGIC
+================================================== */
+function setMode(m) {
+  if (running) stopTimer();
+  mode      = m;
+  remaining = modeDuration(m);
+  total     = remaining;
+  renderAll();
+}
+
+function modeDuration(m) {
+  return {
+    work:  settings.workMins  * 60,
+    short: settings.shortMins * 60,
+    long:  settings.longMins  * 60,
+  }[m];
+}
+
+function startTimer() {
+  running = true;
+  interval = setInterval(tick, 1000);
+  renderTimer();
+  renderSessionDots();
+  if (mode === 'work') renderTip();
+}
+
+function stopTimer() {
+  running = false;
+  clearInterval(interval);
+  interval = null;
+  renderTimer();
+}
+
+function resetTimer() {
+  stopTimer();
+  remaining = modeDuration(mode);
+  total     = remaining;
+  renderTimer();
+  renderSessionDots();
+}
+
+function tick() {
+  if (remaining <= 0) {
+    onTimerComplete();
+    return;
+  }
+  remaining--;
+  renderTimer();
+
+  if (remaining <= 5 && remaining > 0) {
+    var disp = document.getElementById('timerDisplay');
+    disp.classList.remove('pulse');
+    void disp.offsetWidth;
+    disp.classList.add('pulse');
+  }
+
+  document.title = fmtTime(remaining) + ' — ' + (mode === 'work' ? 'Focus' : 'Break');
+}
+
+function onTimerComplete() {
+  stopTimer();
+  document.title = 'Focus — Timer';
+  playSound();
+
+  if (mode === 'work') {
+    stats.todayPomos++;
+    stats.totalPomos++;
+    stats.focusMins += settings.workMins;
+    sessionInCycle++;
+
+    var activeTask = tasks.find(function(t) { return !t.done; });
+    if (activeTask) {
+      activeTask.pomosSpent = Math.min((activeTask.pomosSpent || 0) + 1, activeTask.pomos);
+    }
+    saveState();
+    renderChips();
+    renderTasks();
+
+    var nextMode = sessionInCycle >= settings.cycleLen ? 'long' : 'short';
+    if (sessionInCycle >= settings.cycleLen) sessionInCycle = 0;
+
+    showCompleteOverlay('work', nextMode);
+  } else {
+    showCompleteOverlay(mode, 'work');
+  }
+}
+
+function showCompleteOverlay(justFinished, nextMode) {
+  var overlay  = document.getElementById('completeOverlay');
+  var emoji    = document.getElementById('completeEmoji');
+  var title    = document.getElementById('completeTitle');
+  var sub      = document.getElementById('completeSub');
+  var btnNext  = document.getElementById('btnCompleteNext');
+  var nextLabels = { work:'Start Work →', short:'End Break →', long:'End Break →' };
+
+  if (justFinished === 'work') {
+    var msgs = [
+      ['\u{1F389}', 'Session complete!', 'Nice work. Rest your eyes before jumping back in.'],
+      ['\u{1F345}', 'Pomodoro done!',    'Step away from the screen. Hydrate. Breathe.'],
+      ['\u{1F525}', 'On a roll!',        stats.todayPomos + ' pomodoro' + (stats.todayPomos !== 1 ? 's' : '') + ' today. Keep the momentum going.'],
+      ['✨',    'Great focus!',       'That\'s how you get through a hard brief.'],
+    ];
+    var pick = msgs[Math.min(stats.todayPomos - 1, msgs.length - 1)] || msgs[0];
+    emoji.textContent = pick[0];
+    title.textContent = pick[1];
+    sub.textContent   = pick[2];
+  } else {
+    emoji.textContent = '\u{1F4AA}';
+    title.textContent = 'Break\'s over';
+    sub.textContent   = 'Ready to focus again?';
+  }
+
+  btnNext.textContent = nextLabels[nextMode] || 'Continue →';
+  btnNext.onclick = function() {
+    hideCompleteOverlay();
+    setMode(nextMode);
+    if ((nextMode !== 'work' && settings.autoBreak) ||
+        (nextMode === 'work' && settings.autoWork)) {
+      setTimeout(startTimer, 600);
+    }
+  };
+
+  overlay.classList.add('show');
+}
+
+function hideCompleteOverlay() {
+  document.getElementById('completeOverlay').classList.remove('show');
+}
+
+/* ==================================================
+   SOUND (Web Audio API)
+================================================== */
+function playSound() {
+  if (!settings.sound) return;
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var times = [0, 0.18, 0.36];
+    var freqs = [523, 659, 784];
+    for (var i = 0; i < 3; i++) {
+      (function(time, freq) {
+        var osc  = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0, ctx.currentTime + time);
+        gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + time + 0.05);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + time + 0.3);
+        osc.start(ctx.currentTime + time);
+        osc.stop(ctx.currentTime + time + 0.35);
+      })(times[i], freqs[i]);
+    }
+  } catch(e) {}
+}
+
+/* ==================================================
+   TASKS
+================================================== */
+function toggleTask(i) {
+  tasks[i].done = !tasks[i].done;
+  saveState();
+  renderTasks();
+  renderChips();
+  toast(tasks[i].done ? '✅ Task done!' : 'Task reopened');
+}
+
+function deleteTask(i) {
+  tasks.splice(i, 1);
+  saveState();
+  renderTasks();
+  renderChips();
+}
+
+function addTask() {
+  var name = document.getElementById('taskInput').value.trim();
+  if (!name) return;
+  tasks.push({ id: uid(), name: name, pomos: taskPomos, pomosSpent: 0, done: false });
+  saveState();
+  closeTaskSheet();
+  renderTasks();
+  renderChips();
+  toast('Task added');
+}
+
+/* ==================================================
+   STEPPERS
+================================================== */
+function makeStepper(el, val, min, max, unit, onChange) {
+  function update(v) {
+    el.querySelector('.stepper-val').textContent = v + unit;
+  }
+  el.innerHTML =
+    '<button class="stepper-btn" data-dir="-1">−</button>' +
+    '<span class="stepper-val">' + val + unit + '</span>' +
+    '<button class="stepper-btn" data-dir="1">+</button>';
+  el.querySelectorAll('.stepper-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var dir  = parseInt(btn.dataset.dir);
+      var cur  = parseInt(el.querySelector('.stepper-val').textContent);
+      var next = Math.min(max, Math.max(min, cur + dir));
+      update(next);
+      onChange(next);
+    });
+  });
+}
+
+var draftSettings = {};
+var draftTaskPomos = 1;
+
+function initSettingsSteppers() {
+  draftSettings = JSON.parse(JSON.stringify(settings));
+  makeStepper(document.getElementById('stepperWork'),  draftSettings.workMins,  1, 90, ' min', function(v) { draftSettings.workMins  = v; });
+  makeStepper(document.getElementById('stepperShort'), draftSettings.shortMins, 1, 30, ' min', function(v) { draftSettings.shortMins = v; });
+  makeStepper(document.getElementById('stepperLong'),  draftSettings.longMins,  1, 60, ' min', function(v) { draftSettings.longMins  = v; });
+  makeStepper(document.getElementById('stepperCycle'), draftSettings.cycleLen,  2, 8,  '',     function(v) { draftSettings.cycleLen  = v; });
+  document.getElementById('toggleAutoBreak').checked = draftSettings.autoBreak;
+  document.getElementById('toggleAutoWork').checked  = draftSettings.autoWork;
+  document.getElementById('toggleSound').checked     = draftSettings.sound;
+}
+
+function initTaskSteppers() {
+  draftTaskPomos = 1;
+  makeStepper(document.getElementById('stepperTaskPomos'), 1, 1, 8, '', function(v) { draftTaskPomos = v; });
+}
+
+/* ==================================================
+   SHEETS
+================================================== */
+function openSettings() {
+  initSettingsSteppers();
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+function saveSettings() {
+  settings = {
+    workMins:  draftSettings.workMins,
+    shortMins: draftSettings.shortMins,
+    longMins:  draftSettings.longMins,
+    cycleLen:  draftSettings.cycleLen,
+    autoBreak: document.getElementById('toggleAutoBreak').checked,
+    autoWork:  document.getElementById('toggleAutoWork').checked,
+    sound:     document.getElementById('toggleSound').checked,
+  };
+  if (!running) {
+    remaining = modeDuration(mode);
+    total     = remaining;
+  }
+  saveState();
+  closeSettings();
+  renderAll();
+  toast('Settings saved ✓');
+}
+
+function openTaskSheet() {
+  document.getElementById('taskInput').value = '';
+  taskPomos = 1;
+  initTaskSteppers();
+  document.getElementById('taskOverlay').classList.add('open');
+  setTimeout(function() { document.getElementById('taskInput').focus(); }, 450);
+}
+function closeTaskSheet() {
+  document.getElementById('taskOverlay').classList.remove('open');
+}
+
+/* ==================================================
+   TOAST
+================================================== */
+var toastTimer;
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2400);
+}
+
+/* ==================================================
+   EVENT BINDINGS
+================================================== */
+document.getElementById('btnPlay').addEventListener('click', function(e) {
+  var rip = document.createElement('div');
+  rip.className = 'play-ripple';
+  rip.style.background = 'rgba(255,255,255,0.3)';
+  e.currentTarget.appendChild(rip);
+  setTimeout(function() { rip.remove(); }, 700);
+  if (running) stopTimer(); else startTimer();
+});
+
+document.getElementById('btnReset').addEventListener('click', resetTimer);
+document.getElementById('btnSkip').addEventListener('click', function() {
+  stopTimer();
+  if (mode === 'work') {
+    sessionInCycle++;
+    var next = sessionInCycle >= settings.cycleLen ? 'long' : 'short';
+    if (sessionInCycle >= settings.cycleLen) sessionInCycle = 0;
+    setMode(next);
+  } else {
+    setMode('work');
+  }
+  toast('Skipped');
+});
+
+document.getElementById('btnSettings').addEventListener('click', openSettings);
+document.getElementById('btnSettingsClose').addEventListener('click', closeSettings);
+document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
+document.getElementById('settingsOverlay').addEventListener('click', function(e) {
+  if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+});
+
+document.getElementById('btnAddTask').addEventListener('click', openTaskSheet);
+document.getElementById('btnTaskClose').addEventListener('click', closeTaskSheet);
+document.getElementById('btnTaskCancel').addEventListener('click', closeTaskSheet);
+document.getElementById('btnTaskSave').addEventListener('click', function() {
+  taskPomos = draftTaskPomos;
+  addTask();
+});
+document.getElementById('taskOverlay').addEventListener('click', function(e) {
+  if (e.target === document.getElementById('taskOverlay')) closeTaskSheet();
+});
+document.getElementById('taskInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.target.value.trim()) {
+    taskPomos = draftTaskPomos;
+    addTask();
+  }
+});
+
+document.getElementById('btnCompleteDismiss').addEventListener('click', hideCompleteOverlay);
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === ' ' && !e.target.matches('input,textarea')) {
+    e.preventDefault();
+    if (running) stopTimer(); else startTimer();
+  }
+  if (e.key === 'Escape') {
+    if (document.getElementById('settingsOverlay').classList.contains('open')) closeSettings();
+    else if (document.getElementById('taskOverlay').classList.contains('open')) closeTaskSheet();
+    else if (document.getElementById('completeOverlay').classList.contains('open')) hideCompleteOverlay();
+  }
+});
+
+/* ==================================================
+   INIT
+================================================== */
+remaining = modeDuration(mode);
+total     = remaining;
+renderAll();
+</script>
+
+</body>
+</html>
