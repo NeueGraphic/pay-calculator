@@ -90,38 +90,43 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="border-b border-black/[0.06] last:border-0">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between gap-4 py-5 text-left"
-      >
-        <span className="text-[16px] font-medium text-apple-text">{q}</span>
-        <motion.div
-          animate={{ rotate: open ? 45 : 0 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          className="text-apple-secondary flex-shrink-0"
+    <div className="border-b border-black/[0.06] last:border-0" itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+      <h3 className="m-0">
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="w-full flex items-center justify-between gap-4 py-5 text-left"
+          aria-expanded={open}
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <line x1="10" y1="4" x2="10" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="4" y1="10" x2="16" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </motion.div>
-      </button>
-      <AnimatePresence>
-        {open && (
+          <span className="text-[16px] font-medium text-apple-text" itemProp="name">{q}</span>
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-            className="overflow-hidden"
+            animate={{ rotate: open ? 45 : 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            className="text-apple-secondary flex-shrink-0"
           >
-            <p className="text-[15px] text-apple-secondary leading-relaxed pb-5">
-              {a}
-            </p>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <line x1="10" y1="4" x2="10" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="4" y1="10" x2="16" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </button>
+      </h3>
+      <div itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+              className="overflow-hidden"
+            >
+              <p className="text-[15px] text-apple-secondary leading-relaxed pb-5" itemProp="text">
+                {a}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }
@@ -136,9 +141,9 @@ export default function App() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-apple-bg/80 backdrop-blur-xl border-b border-black/[0.06]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
-          <a href="#" className="flex items-center gap-2">
+          <a href="#" className="flex items-center gap-2" aria-label="PayCalc home">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#863bff] to-[#5B21B6] flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M7 1v12M1 7h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
@@ -158,6 +163,7 @@ export default function App() {
         </div>
       </nav>
 
+      <main>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#863bff]/[0.04] to-transparent pointer-events-none" />
@@ -201,6 +207,18 @@ export default function App() {
               </a>
             </div>
           </motion.div>
+
+          {/* SEO text block */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="mt-8 text-[15px] text-apple-secondary leading-relaxed max-w-2xl mx-auto"
+          >
+            Use our free Australian tax calculator to find your exact take-home pay for FY 2025–26.
+            PayCalc covers income tax, the Medicare levy, HECS repayment obligations, and superannuation
+            contributions so you can plan your finances with confidence.
+          </motion.p>
 
           {/* Trust strip */}
           <motion.div
@@ -289,7 +307,7 @@ export default function App() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-16 sm:py-24">
+      <section id="faq" className="py-16 sm:py-24" itemScope itemType="https://schema.org/FAQPage">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
             <h2 className="text-[32px] sm:text-[40px] font-bold text-apple-text tracking-tight">
@@ -304,6 +322,8 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      </main>
 
       {/* Footer */}
       <footer className="border-t border-black/[0.06] bg-white">

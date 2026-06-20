@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://paycalc.vercel.app/sitemap.xml
