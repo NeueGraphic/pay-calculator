@@ -1,4 +1,4 @@
-import type { FY } from './types'
+import type { ResidencyStatus } from './types'
 
 interface TaxBracket {
   min: number
@@ -23,9 +23,28 @@ const NON_RESIDENT_BRACKETS: TaxBracket[] = [
   { min: 190001,  max: Infinity, rate: 0.45, base: 60850 },
 ]
 
-export function calcRawIncomeTax(income: number, isResident: boolean): number {
+// Working Holiday Maker brackets (subclass 417/462 visa holders)
+const WORKING_HOLIDAY_BRACKETS: TaxBracket[] = [
+  { min: 0,       max: 45000,   rate: 0.15, base: 0 },
+  { min: 45001,   max: 135000,  rate: 0.30, base: 6750 },
+  { min: 135001,  max: 190000,  rate: 0.37, base: 33750 },
+  { min: 190001,  max: Infinity, rate: 0.45, base: 54100 },
+]
+
+function getBrackets(residency: ResidencyStatus): TaxBracket[] {
+  switch (residency) {
+    case 'resident':
+      return RESIDENT_BRACKETS
+    case 'non-resident':
+      return NON_RESIDENT_BRACKETS
+    case 'working-holiday':
+      return WORKING_HOLIDAY_BRACKETS
+  }
+}
+
+export function calcRawIncomeTax(income: number, residency: ResidencyStatus): number {
   if (income <= 0) return 0
-  const brackets = isResident ? RESIDENT_BRACKETS : NON_RESIDENT_BRACKETS
+  const brackets = getBrackets(residency)
   const bracket = brackets.findLast((b) => income >= b.min) ?? brackets[0]
   return bracket.base + (income - bracket.min + 1) * bracket.rate
 }
@@ -40,24 +59,24 @@ export function calcLITO(income: number): number {
   return 0
 }
 
-export function calcIncomeTax(income: number, isResident: boolean, claimTFT: boolean, _fy: FY): number {
+export function calcIncomeTax(income: number, residency: ResidencyStatus, claimTFT: boolean): number {
   if (income <= 0) return 0
 
-  // If no TFN / not claiming TFT: withhold at 47% (resident) or 45% (non-resident)
+  // If no TFN / not claiming TFT: withhold at 47% (resident) or 45% (non-resident/WHM)
   if (!claimTFT) {
-    return income * (isResident ? 0.47 : 0.45)
+    return income * (residency === 'resident' ? 0.47 : 0.45)
   }
 
-  const rawTax = calcRawIncomeTax(income, isResident)
+  const rawTax = calcRawIncomeTax(income, residency)
 
   // Apply LITO for residents only
-  const lito = isResident ? calcLITO(income) : 0
+  const lito = residency === 'resident' ? calcLITO(income) : 0
   return Math.max(0, rawTax - lito)
 }
 
-export function getMarginalRate(income: number, isResident: boolean): number {
+export function getMarginalRate(income: number, residency: ResidencyStatus): number {
   if (income <= 0) return 0
-  const brackets = isResident ? RESIDENT_BRACKETS : NON_RESIDENT_BRACKETS
+  const brackets = getBrackets(residency)
   const bracket = brackets.findLast((b) => income >= b.min) ?? brackets[0]
   return bracket.rate * 100
 }
